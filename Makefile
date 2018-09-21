@@ -1,6 +1,5 @@
 local:
 	cp templates/exp.html index.html
-	coffee -o static/js -cb src/*
 
 all: 
 	coffee -o static/js -cb src/*

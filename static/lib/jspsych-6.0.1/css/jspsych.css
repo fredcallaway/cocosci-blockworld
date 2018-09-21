@@ -8,17 +8,17 @@
  /* Container holding jsPsych content */
 
  .jspsych-display-element {
-   display: flex;
+   /*display: flex;*/
    flex-direction: column;
    /*justify-content: center;
    align-items: center;*/
-   /*height: 100%;
-   width: 100%;*/
+   height: 100%;
+   width: 100%;
    overflow-y: scroll;
  }
 
- .jspsych-display-element:focus {
-   outline: none;
+ .jspsych-display-element {
+   outline: red;
  }
 
  .jspsych-content-wrapper {
