@@ -1,61 +1,35 @@
+'use strict';
+
+/* globals BLOCKS: true, $, _, jsPsych, interact */
 // ========================== //
 // ========= Blocks ========= //
 // ========================== //
 
-var BLOCKS = {};
+// BLOCKS = {};
 
-function move(el, f) {
-  x = parseFloat(el.getAttribute('data-x')) || 0;
-  y = parseFloat(el.getAttribute('data-y')) || 0;
-  [x, y] = f(x, y);
+function getPos(el) {
+  return [parseFloat(el.getAttribute('data-x')) || 0,
+          parseFloat(el.getAttribute('data-y')) || 0];
+}
+function setPos(el, pos) {
+  var x, y;
+  [x, y] = pos;
   el.style.webkitTransform = el.style.transform = `translate(${x}px, ${y}px)`;
   el.setAttribute('data-x', x);
   el.setAttribute('data-y', y);
+}
+function move(el, f) {
+  setPos(el, f(...getPos(el)));
 }
 function shift(el, dx, dy) {
   move(el, (x, y) => [x+dx, y+dy]);
 }
 
-// enable draggables to be dropped into this
-interact('.dropzone').dropzone({
-  // only accept elements matching this CSS selector
-  accept: '.block',
-  // Require a 75% element overlap for a drop to be possible
-  overlap: 0.75,
-
-  // listen for drop related events:
-  ondropactivate: function (event) {
-    // add active dropzone feedback
-    event.target.classList.add('drop-active');
-  },
-  ondragenter: function (event) {
-    var draggableElement = event.relatedTarget,
-        dropzoneElement = event.target;
-
-    // feedback the possibility of a drop
-    dropzoneElement.classList.add('drop-target');
-    draggableElement.classList.add('can-drop');
-  },
-  ondragleave: function (event) {
-    // remove the drop feedback style
-    event.target.classList.remove('drop-target');
-    event.relatedTarget.classList.remove('can-drop');
-  },
-  ondrop: function (event) {
-    move(event.relatedTarget, (x, y) => [round(x, -2), round(y, -2)]);
-  },
-  ondropdeactivate: function (event) {
-    // remove active dropzone feedback
-    event.target.classList.remove('drop-active');
-    event.target.classList.remove('drop-target');
-  }
-});
-
 // ========================== //
 // ========= Plugin ========= //
 // ========================== //
 
-jsPsych.plugins["blockworld"] = (function() {
+jsPsych.plugins.blockworld = (function() {
 
   var plugin = {};
   plugin.info = {
@@ -65,62 +39,44 @@ jsPsych.plugins["blockworld"] = (function() {
 
   plugin.trial = function(display_element, trial) {
 
-    state = [
+    var state = [
       ['A', 'B', 'C'],
       ['D'],
       ['E']
     ];
     var HEIGHT = 500;
 
-    $stage = $('<div>', {
+    var $stage = $('<div>', {
       id: 'stage'
     }).appendTo(display_element);
-    $blockContainer = $('<div>', {
+    var $blockContainer = $('<div>', {
       width: state.length * 100,
       height: HEIGHT
     }).appendTo($stage);
 
 
-    function getPos(col, height) {
+    function layoutPos(col, height) {
       return [col * 100, HEIGHT - 100*(height+1)];
     }
 
-    // Set up divs.
-    blocks = [];
-    dropzones = [];
-    state.forEach((blockIDs, col) => {
-      drop = $('<div>', {
-        class: 'dropzone',
-        // width: 100,
-        // height: HEIGHT
-      });
-      drop.appendTo($blockContainer);
-      dropzones.push(drop);
-      move(dropzones[col][0], (x, y) => [100*col, 0]);
 
-      column = [];
-      blocks.push(column);
-      blockIDs.forEach((id, height) => {
-        block = $('<div>', {
+    // Create blocks.
+    var blocks = _.chain(state)
+      .flatten()
+      .map(id => {
+        let block = $('<div>', {
           class: 'block',
           id: id,
           html: id,
         });
         block.appendTo($blockContainer);
-        column.push(block);
-        shift(block[0], ...getPos(col, height));
-      });
-    });
+        return [id, block];
+      })
+      .object().value();
 
-    // Dragging blocks.
-    function makeDraggable() {
-      blocks.forEach((column, col) => {
-        _.last(column).addClass('draggable');
-        move(dropzones[col][0], (x, y) => [x, HEIGHT - 100*(column.length+1)]);
-      });
-    }
-    makeDraggable();
-
+    // Define dragging rules.
+    var dragSuccess = false;
+    var dropLocation = null;
     interact('.draggable')
       .draggable({
         inertia: true,
@@ -129,14 +85,65 @@ jsPsych.plugins["blockworld"] = (function() {
           endOnly: false,
           elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
         },
-        onmove: function(event) {
+        onstart: function(event) {
           $(event.target).css('opacity', 0.5);
+          dropLocation = getPos(event.target);
+          console.log(`pickup ${event.target.id} at ${dropLocation}`);
+        },
+        onmove: function(event) {
           shift(event.target, event.dx, event.dy);
         },
         onend: function (event) {
           $(event.target).css('opacity', 1);
+          console.log(`drop ${event.target.id} at ${dropLocation}`);
+          setPos(event.target, dropLocation);
         }
       });
+
+    // enable draggables to be dropped into this
+    interact('.dropzone').dropzone({
+      // only accept elements matching this CSS selector
+      accept: '.block',
+      // Require a 75% element overlap for a drop to be possible
+      overlap: 0.75,
+
+      // listen for drop related events:
+      ondropactivate: function (event) {
+        // add active dropzone feedback
+        event.target.classList.add('drop-active');
+      },
+      ondragenter: function (event) {
+        var draggableElement = event.relatedTarget,
+            dropzoneElement = event.target;
+
+        // feedback the possibility of a drop
+        dropzoneElement.classList.add('drop-target');
+        draggableElement.classList.add('can-drop');
+      },
+      ondragleave: function (event) {
+        // remove the drop feedback style
+        event.target.classList.remove('drop-target');
+        event.relatedTarget.classList.remove('can-drop');
+      },
+      ondrop: function (event) {
+        move(event.relatedTarget, (x, y) => [round(x, -2), round(y, -2)]);
+      },
+      ondropdeactivate: function (event) {
+        // remove active dropzone feedback
+        event.target.classList.remove('drop-active');
+        event.target.classList.remove('drop-target');
+      }
+    });
+    
+    function setLayout() {
+      _(state).each((column, col) => {
+        column.forEach((id, height) => {
+          setPos(blocks[id][0], layoutPos(col, height));
+        });
+        blocks[_.last(column)].addClass('draggable');
+      });
+    }
+    setLayout();
 
     // ...
     var trial_data = {
