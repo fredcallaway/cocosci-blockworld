@@ -103,13 +103,18 @@ jsPsych.plugins["blockworld"] = (function() {
     }
 
     blocks = [];
+    dropzones = [];
     state.forEach((blockIDs, col) => {
-      c = $('<div>', {
+      drop = $('<div>', {
         class: 'dropzone',
-        width: 100,
-        height: HEIGHT
+        // width: 100,
+        // height: HEIGHT
       });
-      c.appendTo($blockContainer);
+      drop.appendTo($blockContainer);
+      dropzones.push(drop);
+      move(dropzones[col][0], (x, y) => [100*col, 0]);
+
+
       column = [];
       blocks.push(column);
       blockIDs.forEach((id, height) => {
@@ -126,6 +131,7 @@ jsPsych.plugins["blockworld"] = (function() {
 
     blocks.forEach((column, col) => {
       _.last(column).addClass('draggable');
+      move(dropzones[col][0], (x, y) => [x, HEIGHT - 100*(column.length+1)]);
     });
 
     // data saving

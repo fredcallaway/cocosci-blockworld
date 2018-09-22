@@ -12,8 +12,8 @@
 
   background-color: #29e;
   color: white;
-
   border-radius: 10px;
+
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -23,11 +23,12 @@
 }
 
 .dropzone {
-  /*position: absolute;*/
+  position: absolute;
   width: 100px;
   height: 100px;
-  float: left;
-  /*border: 1px black solid;*/
+  border: 1px black solid;
+  border-radius: 10px;
+
 }
 .drop-target {
   background-color: #fce;
