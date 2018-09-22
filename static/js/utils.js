@@ -40,6 +40,12 @@ mean = function(xs) {
   }))) / xs.length;
 };
 
+round = function(n, places = 0) {
+  var e;
+  e = Math.pow(10, places);
+  return Math.round(n * e) / e;
+};
+
 checkObj = function(obj, keys) {
   var i, k, len;
   if (keys == null) {

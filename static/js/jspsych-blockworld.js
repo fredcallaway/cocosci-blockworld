@@ -4,70 +4,34 @@
 
 var BLOCKS = {};
 
-class Block {
-  constructor(parent, id) {
-    this.$el = $('<div>', {
-      class: 'block',
-      id: id
-    });
-    this.id = id;
-    this.el = this.$el[0];
-    this.$el.appendTo(parent);
-    this.$el.html(id);
-
-    BLOCKS[id] = this;
-  }
-  get pos() {
-    var x, y;
-    x = parseFloat(this.el.getAttribute('data-x')) || 0;
-    y = parseFloat(this.el.getAttribute('data-y')) || 0;
-    return [x, y];
-  }
-  set pos(newPos) {
-    var x, y;
-    x = Math.round(newPos[0]);
-    y = Math.round(newPos[1]);
-    this.el.style.webkitTransform = this.el.style.transform = `translate(${x}px, ${y}px)`;
-    this.el.setAttribute('data-x', x);
-    this.el.setAttribute('data-y', y);
-  }
-  move(dx, dy) {
-    this.$el.css('opacity', 0.5);
-    var x, y;
-    [x, y] = this.pos;
-    this.pos = [x + dx, y + dy];
-  }
-  drop() {
-    console.log(`drop ${this.id} at (${this.pos[0]}, ${this.pos[1]})`);
-    this.$el.css('opacity', 1);
-  }
+function move(el, f) {
+  x = parseFloat(el.getAttribute('data-x')) || 0;
+  y = parseFloat(el.getAttribute('data-y')) || 0;
+  [x, y] = f(x, y);
+  el.style.webkitTransform = el.style.transform = `translate(${x}px, ${y}px)`;
+  el.setAttribute('data-x', x);
+  el.setAttribute('data-y', y);
+}
+function shift(el, dx, dy) {
+  move(el, (x, y) => [x+dx, y+dy]);
 }
 
-
-// target elements with the "draggable" class
-interact('.block')
+interact('.draggable')
   .draggable({
-    // enable inertial throwing
     inertia: true,
-    
-    // keep the element within the area of it's parent
-    restrict: {
+    restrict: {  // keep the element within the area of it's parent
       restriction: "parent",
       endOnly: false,
       elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
     },
-    // enable autoScroll
-    autoScroll: false,
-
     onmove: function(event) {
-      BLOCKS[event.target.id].move(event.dx, event.dy);
+      $(event.target).css('opacity', 0.5);
+      shift(event.target, event.dx, event.dy);
     },
-    
     onend: function (event) {
-      BLOCKS[event.target.id].drop();
+      $(event.target).css('opacity', 1);
     }
   });
-
 
 // enable draggables to be dropped into this
 interact('.dropzone').dropzone({
@@ -95,7 +59,7 @@ interact('.dropzone').dropzone({
     event.relatedTarget.classList.remove('can-drop');
   },
   ondrop: function (event) {
-    // event.relatedTarget.textContent = 'Dropped';
+    move(event.relatedTarget, (x, y) => [round(x, -2), round(y, -2)]);
   },
   ondropdeactivate: function (event) {
     // remove active dropzone feedback
@@ -138,35 +102,36 @@ jsPsych.plugins["blockworld"] = (function() {
       return [col * 100, HEIGHT - 100*(height+1)];
     }
 
-    // $stage.css('width', '800px');
-    // A = new Block($blockContainer, 'A');
-
-    columns = 
-    state.forEach((blocks, col) => {
+    blocks = [];
+    state.forEach((blockIDs, col) => {
       c = $('<div>', {
         class: 'dropzone',
         width: 100,
         height: HEIGHT
       });
       c.appendTo($blockContainer);
-      blocks.forEach((block, height) => {
-        b = new Block($blockContainer, block);
-        b.pos = getPos(col, height);
-
+      column = [];
+      blocks.push(column);
+      blockIDs.forEach((id, height) => {
+        block = $('<div>', {
+          class: 'block',
+          id: id,
+          html: id,
+        });
+        block.appendTo($blockContainer);
+        column.push(block);
+        shift(block[0], ...getPos(col, height));
       });
     });
 
+    blocks.forEach((column, col) => {
+      _.last(column).addClass('draggable');
+    });
 
-
-      // this is used later in the resizing and gesture demos
-      // window.dragMoveListener = dragMoveListener;
-    
     // data saving
     var trial_data = {
       parameter_name: 'parameter value'
     };
-
-
 
     // end trial
     // jsPsych.finishTrial(trial_data);
