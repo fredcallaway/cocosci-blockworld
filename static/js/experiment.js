@@ -98,8 +98,8 @@ async function initializeExperiment() {
     timeline,
     auto_preload: false,
     exclusions: {
-      min_width: 800,
-      min_height: 600
+      // min_width: 800,
+      // min_height: 600
     },
   });
 };
