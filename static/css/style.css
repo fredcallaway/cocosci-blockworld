@@ -1,5 +1,7 @@
 
 .block {
+  /*border: 1px white solid;*/
+  position: absolute;
   width: 100px;
   height: 100px;
 
@@ -12,8 +14,29 @@
   color: white;
 
   border-radius: 10px;
-  /*padding: 4%;*/
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
+
+.dropzone {
+  /*position: absolute;*/
+  width: 100px;
+  height: 100px;
+  float: left;
+  /*border: 1px black solid;*/
+}
+.drop-target {
+  background-color: #fce;
+  background-opacity: ;
+  border-color: #fff;
+  border-style: solid;
+
+}
+
 
 #stage {
   border: 5px black solid;
