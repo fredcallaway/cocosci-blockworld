@@ -1,6 +1,6 @@
 'use strict';
 
-/* globals BLOCKS: true, $, _, jsPsych, interact */
+/* globals BLOCKS: true, $, _, jsPsych, interact, console */
 // ========================== //
 // ========= Blocks ========= //
 // ========================== //
@@ -54,7 +54,6 @@ jsPsych.plugins.blockworld = (function() {
       height: HEIGHT
     }).appendTo($stage);
 
-
     function layoutPos(col, height) {
       return [col * 100, HEIGHT - 100*(height+1)];
     }
@@ -75,8 +74,8 @@ jsPsych.plugins.blockworld = (function() {
       .object().value();
 
     // Define dragging rules.
-    var dragSuccess = false;
-    var dropLocation = null;
+    var dropPos = null;
+    var pickupPos = null;
     interact('.draggable')
       .draggable({
         inertia: true,
@@ -87,18 +86,23 @@ jsPsych.plugins.blockworld = (function() {
         },
         onstart: function(event) {
           $(event.target).css('opacity', 0.5);
-          dropLocation = getPos(event.target);
-          console.log(`pickup ${event.target.id} at ${dropLocation}`);
+          pickupPos = getPos(event.target);
+          console.log(`pickup ${event.target.id} at ${pickupPos}`);
         },
         onmove: function(event) {
           shift(event.target, event.dx, event.dy);
         },
         onend: function (event) {
           $(event.target).css('opacity', 1);
-          console.log(`drop ${event.target.id} at ${dropLocation}`);
-          setPos(event.target, dropLocation);
+          let pos = dropPos || pickupPos;
+          console.log(`drop ${event.target.id} at ${pos}`);
+          setPos(event.target, pos);
         }
       });
+
+     var dz = $('<div>', {class: 'dropzone'});
+     dz.appendTo($blockContainer);
+     setPos(dz[0], [100, 100]);
 
     // enable draggables to be dropped into this
     interact('.dropzone').dropzone({
@@ -113,6 +117,8 @@ jsPsych.plugins.blockworld = (function() {
         event.target.classList.add('drop-active');
       },
       ondragenter: function (event) {
+        console.log('dragenter');
+        dropPos = getPos(event.target);
         var draggableElement = event.relatedTarget,
             dropzoneElement = event.target;
 
@@ -121,12 +127,14 @@ jsPsych.plugins.blockworld = (function() {
         draggableElement.classList.add('can-drop');
       },
       ondragleave: function (event) {
+        console.log('dragleave');
         // remove the drop feedback style
         event.target.classList.remove('drop-target');
         event.relatedTarget.classList.remove('can-drop');
       },
       ondrop: function (event) {
-        move(event.relatedTarget, (x, y) => [round(x, -2), round(y, -2)]);
+        console.log('dropzone');
+        // move(event.relatedTarget, (x, y) => [round(x, -2), round(y, -2)]);
       },
       ondropdeactivate: function (event) {
         // remove active dropzone feedback
