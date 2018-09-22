@@ -16,23 +16,6 @@ function shift(el, dx, dy) {
   move(el, (x, y) => [x+dx, y+dy]);
 }
 
-interact('.draggable')
-  .draggable({
-    inertia: true,
-    restrict: {  // keep the element within the area of it's parent
-      restriction: "parent",
-      endOnly: false,
-      elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
-    },
-    onmove: function(event) {
-      $(event.target).css('opacity', 0.5);
-      shift(event.target, event.dx, event.dy);
-    },
-    onend: function (event) {
-      $(event.target).css('opacity', 1);
-    }
-  });
-
 // enable draggables to be dropped into this
 interact('.dropzone').dropzone({
   // only accept elements matching this CSS selector
@@ -102,18 +85,18 @@ jsPsych.plugins["blockworld"] = (function() {
       return [col * 100, HEIGHT - 100*(height+1)];
     }
 
+    // Set up divs.
     blocks = [];
     dropzones = [];
     state.forEach((blockIDs, col) => {
       drop = $('<div>', {
-        class: 'dropzone',
+        // class: 'dropzone',
         // width: 100,
         // height: HEIGHT
       });
       drop.appendTo($blockContainer);
       dropzones.push(drop);
       move(dropzones[col][0], (x, y) => [100*col, 0]);
-
 
       column = [];
       blocks.push(column);
@@ -129,12 +112,33 @@ jsPsych.plugins["blockworld"] = (function() {
       });
     });
 
-    blocks.forEach((column, col) => {
-      _.last(column).addClass('draggable');
-      move(dropzones[col][0], (x, y) => [x, HEIGHT - 100*(column.length+1)]);
-    });
+    // Dragging blocks.
+    function makeDraggable() {
+      blocks.forEach((column, col) => {
+        _.last(column).addClass('draggable');
+        move(dropzones[col][0], (x, y) => [x, HEIGHT - 100*(column.length+1)]);
+      });
+    }
+    makeDraggable();
 
-    // data saving
+    interact('.draggable')
+      .draggable({
+        inertia: true,
+        restrict: {  // keep the element within the area of it's parent
+          restriction: "parent",
+          endOnly: false,
+          elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
+        },
+        onmove: function(event) {
+          $(event.target).css('opacity', 0.5);
+          shift(event.target, event.dx, event.dy);
+        },
+        onend: function (event) {
+          $(event.target).css('opacity', 1);
+        }
+      });
+
+    // ...
     var trial_data = {
       parameter_name: 'parameter value'
     };
