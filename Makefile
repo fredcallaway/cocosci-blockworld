@@ -1,4 +1,4 @@
-local:
+index.html:
 	cp templates/exp.html index.html
 
 all: 
