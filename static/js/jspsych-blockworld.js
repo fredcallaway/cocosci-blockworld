@@ -90,7 +90,7 @@ jsPsych.plugins["blockworld"] = (function() {
     dropzones = [];
     state.forEach((blockIDs, col) => {
       drop = $('<div>', {
-        // class: 'dropzone',
+        class: 'dropzone',
         // width: 100,
         // height: HEIGHT
       });
