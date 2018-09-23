@@ -4,6 +4,7 @@
   position: absolute;
   width: 100px;
   height: 100px;
+  border: 2px black solid;
 
   text-align: center;
   vertical-align: middle;
@@ -26,17 +27,15 @@
   position: absolute;
   width: 100px;
   height: 100px;
-  border: 1px black solid;
+  /*border: 2px #29e dashed;*/
   border-radius: 10px;
   pointer-events: none; 
 
 }
 .drop-target {
-  background-color: #fce;
-  background-opacity: ;
-  border-color: #fff;
-  border-style: solid;
-
+  border: 2px black solid;
+  /*background-color: #fce;*/
+  /*opacity: 50%;*/
 }
 
 

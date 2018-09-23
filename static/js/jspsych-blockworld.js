@@ -142,7 +142,7 @@ jsPsych.plugins.blockworld = (function() {
       // only accept elements matching this CSS selector
       accept: '.block',
       // Require a 75% element overlap for a drop to be possible
-      overlap: 0.75,
+      overlap: 0.55,
 
       // listen for drop related events:
       ondropactivate: function (event) {
