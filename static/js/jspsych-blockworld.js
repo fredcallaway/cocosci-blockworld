@@ -54,9 +54,13 @@ jsPsych.plugins.blockworld = (function() {
       height: HEIGHT
     }).appendTo($stage);
 
-    function layoutPos(col, height) {
+    function loc2pos(col, height) {
       return [col * 100, HEIGHT - 100*(height+1)];
     }
+    // function pos2loc(loc) {
+    //   return [col / 100, ]
+    // }
+
 
 
     // Create blocks.
@@ -73,6 +77,30 @@ jsPsych.plugins.blockworld = (function() {
       })
       .object().value();
 
+    function createDropZones(startCol) {
+      for (let col of [0, 1, 2]) {
+        if (col == startCol) continue;
+        let dz = $('<div>', {class: 'dropzone'});
+        dz.appendTo($blockContainer);
+        setPos(dz[0], loc2pos(col, state[col].length));
+      }
+    }
+
+    function setLayout() {
+      _(state).each((column, col) => {
+        if (!column.length) return;
+        column.forEach((id, height) => {
+          setPos(blocks[id][0], loc2pos(col, height));
+          blocks[id].removeClass('draggable');
+
+        });
+        blocks[_.last(column)].addClass('draggable');
+      });
+    }
+    setLayout();
+
+    // createDropZones(0);
+
     // Define dragging rules.
     var dropPos = null;
     var pickupPos = null;
@@ -85,9 +113,10 @@ jsPsych.plugins.blockworld = (function() {
           elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
         },
         onstart: function(event) {
-          $(event.target).css('opacity', 0.5);
           pickupPos = getPos(event.target);
           console.log(`pickup ${event.target.id} at ${pickupPos}`);
+          $(event.target).css('opacity', 0.5);
+          createDropZones(getPos(event.target)[0] / 100);
         },
         onmove: function(event) {
           shift(event.target, event.dx, event.dy);
@@ -97,12 +126,16 @@ jsPsych.plugins.blockworld = (function() {
           let pos = dropPos || pickupPos;
           console.log(`drop ${event.target.id} at ${pos}`);
           setPos(event.target, pos);
+          $('.dropzone').remove();
+          if (dropPos) {
+            let pickupCol = pickupPos[0] / 100;
+            let dropCol = dropPos[0] / 100;
+            state[dropCol].push(state[pickupCol].pop());
+            console.log(JSON.stringify(state));
+            setLayout();
+          }
         }
       });
-
-     var dz = $('<div>', {class: 'dropzone'});
-     dz.appendTo($blockContainer);
-     setPos(dz[0], [100, 100]);
 
     // enable draggables to be dropped into this
     interact('.dropzone').dropzone({
@@ -128,6 +161,7 @@ jsPsych.plugins.blockworld = (function() {
       },
       ondragleave: function (event) {
         console.log('dragleave');
+        dropPos = null;
         // remove the drop feedback style
         event.target.classList.remove('drop-target');
         event.relatedTarget.classList.remove('can-drop');
@@ -142,16 +176,6 @@ jsPsych.plugins.blockworld = (function() {
         event.target.classList.remove('drop-target');
       }
     });
-    
-    function setLayout() {
-      _(state).each((column, col) => {
-        column.forEach((id, height) => {
-          setPos(blocks[id][0], layoutPos(col, height));
-        });
-        blocks[_.last(column)].addClass('draggable');
-      });
-    }
-    setLayout();
 
     // ...
     var trial_data = {
