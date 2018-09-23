@@ -57,11 +57,6 @@ jsPsych.plugins.blockworld = (function() {
     function loc2pos(col, height) {
       return [col * 100, HEIGHT - 100*(height+1)];
     }
-    // function pos2loc(loc) {
-    //   return [col / 100, ]
-    // }
-
-
 
     // Create blocks.
     var blocks = _.chain(state)
@@ -99,9 +94,6 @@ jsPsych.plugins.blockworld = (function() {
     }
     setLayout();
 
-    // createDropZones(0);
-
-    // Define dragging rules.
     var dropPos = null;
     var pickupPos = null;
     interact('.draggable')
@@ -137,16 +129,11 @@ jsPsych.plugins.blockworld = (function() {
         }
       });
 
-    // enable draggables to be dropped into this
     interact('.dropzone').dropzone({
-      // only accept elements matching this CSS selector
       accept: '.block',
-      // Require a 75% element overlap for a drop to be possible
-      overlap: 0.55,
+      overlap: 0.55,  // overlap necessary to allow drop
 
-      // listen for drop related events:
       ondropactivate: function (event) {
-        // add active dropzone feedback
         event.target.classList.add('drop-active');
       },
       ondragenter: function (event) {
@@ -155,23 +142,19 @@ jsPsych.plugins.blockworld = (function() {
         var draggableElement = event.relatedTarget,
             dropzoneElement = event.target;
 
-        // feedback the possibility of a drop
         dropzoneElement.classList.add('drop-target');
         draggableElement.classList.add('can-drop');
       },
       ondragleave: function (event) {
         console.log('dragleave');
         dropPos = null;
-        // remove the drop feedback style
         event.target.classList.remove('drop-target');
         event.relatedTarget.classList.remove('can-drop');
       },
       ondrop: function (event) {
         console.log('dropzone');
-        // move(event.relatedTarget, (x, y) => [round(x, -2), round(y, -2)]);
       },
       ondropdeactivate: function (event) {
-        // remove active dropzone feedback
         event.target.classList.remove('drop-active');
         event.target.classList.remove('drop-target');
       }
