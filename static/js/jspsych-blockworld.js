@@ -1,35 +1,93 @@
 'use strict';
-
-/* globals BLOCKS: true, $, _, jsPsych, interact, console */
-// ========================== //
-// ========= Blocks ========= //
-// ========================== //
-
-// BLOCKS = {};
-
-function getPos(el) {
-  return [parseFloat(el.getAttribute('data-x')) || 0,
-          parseFloat(el.getAttribute('data-y')) || 0];
-}
-function setPos(el, pos) {
-  var x, y;
-  [x, y] = pos;
-  el.style.webkitTransform = el.style.transform = `translate(${x}px, ${y}px)`;
-  el.setAttribute('data-x', x);
-  el.setAttribute('data-y', y);
-}
-function move(el, f) {
-  setPos(el, f(...getPos(el)));
-}
-function shift(el, dx, dy) {
-  move(el, (x, y) => [x+dx, y+dy]);
-}
-
-// ========================== //
-// ========= Plugin ========= //
-// ========================== //
+/* globals BLOCKS: true, $, _, jsPsych, interact, console, showModal */
 
 jsPsych.plugins.blockworld = (function() {
+  function getPos(el) {
+    return [parseFloat(el.getAttribute('data-x')) || 0,
+            parseFloat(el.getAttribute('data-y')) || 0];
+  }
+  function setPos(el, pos) {
+    var x, y;
+    [x, y] = pos;
+    el.style.webkitTransform = el.style.transform = `translate(${x}px, ${y}px)`;
+    el.setAttribute('data-x', x);
+    el.setAttribute('data-y', y);
+  }
+  function move(el, f) {
+    setPos(el, f(...getPos(el)));
+  }
+  function shift(el, dx, dy) {
+    move(el, (x, y) => [x+dx, y+dy]);
+  }
+
+  class BlockWorld {
+    constructor(state) {
+      this.state = state;
+      this.height = 500;
+      
+      this.div = $('<div>', {
+        class: 'stage'
+      });
+
+      this.title = $('<h2>', {
+        class: 'caption',
+        html: '&nbsp;'
+      }).appendTo(this.div);
+
+      this.stage = $('<div>', {
+        // class: 'stage',
+        width: state.length * 100,
+        height: this.height
+      }).appendTo(this.div);
+
+      this.blocks = _.chain(state)
+        .flatten()
+        .map(id => {
+          let block = $('<div>', {
+            class: 'block',
+            id: id,
+            html: id,
+          });
+          block.appendTo(this.stage);
+          return [id, block];
+        })
+        .object().value();
+      this.setLayout();
+    }
+
+    loc2pos(col, height) {
+      return [col * 100, this.height - 100*(height+1)];
+    } 
+
+    appendTo(element) {
+      this.div.appendTo(element);
+    }
+
+    createDropZones(startCol) {
+      for (let col of _.range(this.state.length)) {
+        if (col == startCol) continue;
+        let dz = $('<div>', {class: 'dropzone'});
+        dz.appendTo(this.stage);
+        setPos(dz[0], this.loc2pos(col, this.state[col].length));
+      }
+    }
+
+    setLayout() {
+      _(this.state).each((column, col) => {
+        column.forEach((id, height) => {
+          setPos(this.blocks[id][0], this.loc2pos(col, height));
+          this.blocks[id].removeClass('draggable');
+        });
+      });
+    }
+
+    makeDraggable() {
+      _(this.state).each((column, col) => {
+        if (!column.length) return;
+        this.blocks[_.last(column)].addClass('draggable');
+      });
+    }
+  }
 
   var plugin = {};
   plugin.info = {
@@ -37,63 +95,51 @@ jsPsych.plugins.blockworld = (function() {
     parameters: {}
   };
 
+  function state2string(state) {
+    return state.map(col => col.join(',')).join(':');
+  }
+
   plugin.trial = function(display_element, trial) {
+    // var state = trial.initial;
+    // await sleep(1000);
+    var goal = trial.goal;
 
-    var state = [
-      ['A', 'B', 'C'],
-      ['D'],
-      ['E']
-    ];
-    var HEIGHT = 500;
-
-    var $stage = $('<div>', {
-      id: 'stage'
-    }).appendTo(display_element);
-    var $blockContainer = $('<div>', {
-      width: state.length * 100,
-      height: HEIGHT
-    }).appendTo($stage);
-
-    function loc2pos(col, height) {
-      return [col * 100, HEIGHT - 100*(height+1)];
+    function goalTest(state) {
+      return _.isEqual(state, goal);
     }
 
-    // Create blocks.
-    var blocks = _.chain(state)
-      .flatten()
-      .map(id => {
-        let block = $('<div>', {
-          class: 'block',
-          id: id,
-          html: id,
-        });
-        block.appendTo($blockContainer);
-        return [id, block];
-      })
-      .object().value();
+    var world = new BlockWorld(trial.initial);
+    world.appendTo(display_element);
+    world.makeDraggable();
 
-    function createDropZones(startCol) {
-      for (let col of [0, 1, 2]) {
-        if (col == startCol) continue;
-        let dz = $('<div>', {class: 'dropzone'});
-        dz.appendTo($blockContainer);
-        setPos(dz[0], loc2pos(col, state[col].length));
-      }
+
+    var goalWorld = new BlockWorld(trial.goal);
+    goalWorld.appendTo(display_element);
+    goalWorld.div.addClass('goal');
+    goalWorld.title.html('Goal');
+
+    var data = {
+      states: [state2string(world.state)],
+      times: []
+    };
+
+    function complete() {
+      console.log('SUCCESS');
+      showModal($('<div>')
+        .add($('<h3>', {html: 'Success!'}))
+        .add($('<button>', {
+          class: 'btn btn-success',
+          text: 'Continue',
+          click: function() {
+            $('.modal').remove();
+            $(display_element).html('');
+            jsPsych.finishTrial(data);
+          }
+        }))
+      );
     }
 
-    function setLayout() {
-      _(state).each((column, col) => {
-        if (!column.length) return;
-        column.forEach((id, height) => {
-          setPos(blocks[id][0], loc2pos(col, height));
-          blocks[id].removeClass('draggable');
-
-        });
-        blocks[_.last(column)].addClass('draggable');
-      });
-    }
-    setLayout();
-
+    var startTime = Date.now();
     var dropPos = null;
     var pickupPos = null;
     interact('.draggable')
@@ -106,9 +152,10 @@ jsPsych.plugins.blockworld = (function() {
         },
         onstart: function(event) {
           pickupPos = getPos(event.target);
-          console.log(`pickup ${event.target.id} at ${pickupPos}`);
+          dropPos = null;
+          // console.log(`pickup ${event.target.id} at ${pickupPos}`);
           $(event.target).css('opacity', 0.5);
-          createDropZones(getPos(event.target)[0] / 100);
+          world.createDropZones(getPos(event.target)[0] / 100);
         },
         onmove: function(event) {
           shift(event.target, event.dx, event.dy);
@@ -116,15 +163,23 @@ jsPsych.plugins.blockworld = (function() {
         onend: function (event) {
           $(event.target).css('opacity', 1);
           let pos = dropPos || pickupPos;
-          console.log(`drop ${event.target.id} at ${pos}`);
+          // console.log(`drop ${event.target.id} at ${pos}`);
           setPos(event.target, pos);
           $('.dropzone').remove();
           if (dropPos) {
+            // Successful move.
             let pickupCol = pickupPos[0] / 100;
             let dropCol = dropPos[0] / 100;
-            state[dropCol].push(state[pickupCol].pop());
-            console.log(JSON.stringify(state));
-            setLayout();
+            world.state[dropCol].push(world.state[pickupCol].pop());
+            console.log(state2string(world.state));
+            data.states.push(state2string(world.state));
+            data.times.push(Date.now() - startTime);
+            world.setLayout();
+            world.makeDraggable();
+            if (goalTest(world.state)) {
+              complete();
+            }
+            // console.log(JSON.stringify(state));
           }
         }
       });
@@ -137,7 +192,7 @@ jsPsych.plugins.blockworld = (function() {
         event.target.classList.add('drop-active');
       },
       ondragenter: function (event) {
-        console.log('dragenter');
+        // console.log('dragenter');
         dropPos = getPos(event.target);
         var draggableElement = event.relatedTarget,
             dropzoneElement = event.target;
@@ -146,27 +201,19 @@ jsPsych.plugins.blockworld = (function() {
         draggableElement.classList.add('can-drop');
       },
       ondragleave: function (event) {
-        console.log('dragleave');
+        // console.log('dragleave');
         dropPos = null;
         event.target.classList.remove('drop-target');
         event.relatedTarget.classList.remove('can-drop');
       },
       ondrop: function (event) {
-        console.log('dropzone');
+        // console.log('dropzone');
       },
       ondropdeactivate: function (event) {
         event.target.classList.remove('drop-active');
         event.target.classList.remove('drop-target');
       }
     });
-
-    // ...
-    var trial_data = {
-      parameter_name: 'parameter value'
-    };
-
-    // end trial
-    // jsPsych.finishTrial(trial_data);
   };
 
   return plugin;

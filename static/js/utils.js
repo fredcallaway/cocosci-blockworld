@@ -9,6 +9,17 @@ markdown = function(txt) {
   return converter.makeHtml(txt.replace(/^[ ]+/gm, ''));
 };
 
+
+showModal = function(content) {
+  $('<div>', {
+    class: 'modal',
+    html: $('<div>', {
+      class: 'modal-content',
+      html: content
+    })
+  }).appendTo($('#jspsych-target'));
+};
+
 delay = function(time, func) {
   return setTimeout(func, time);
 };
