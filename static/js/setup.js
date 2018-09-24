@@ -4,7 +4,7 @@
 // ---------- Experiment modes ---------- #
 var CONDITION, DEBUG, LOCAL, LOG_DEBUG, handleError, psiturk, saveData, startExperiment, submitHit;
 
-DEBUG = true;
+DEBUG = false;
 
 LOCAL = false;
 

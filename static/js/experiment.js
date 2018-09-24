@@ -5,81 +5,60 @@ async function initializeExperiment() {
   // Setup //
   ///////////
   
-  var test_block = {
-    type: 'blockworld',
-  }
-
   // trials = await $.getJSON 'static/json/rewards/increasing.json'
   const N_TRIAL = 4;
+  // var anykey = "<div class='lower message'>Press any key to continue.</div>";
 
-  // This ensures that images appear exactly when we tell them to.
-  jsPsych.pluginAPI.preloadImages(['static/images/blue.png', 'static/images/orange.png']);
-
-  // To avoid repeating ourselves,  we create a variable for a piece
-  // of html that we use multiple times.
-  var anykey = "<div class='lower message'>Press any key to continue.</div>";
-
-
-  //////////////////
-  // Instructions //
-  //////////////////
-
-  var welcome_block = {
-    type: "html-keyboard-response",
+  var instructions = {
+    type: "html-button-response",
     // We use the handy markdown function (defined in utils.js) to format our text.
     stimulus: markdown(`
-    # My Sweet Experiment
+    # Instructions
 
-    This is a reworked version of the go/no-go task constructed in a
-    [tutorial](http://docs.jspsych.org/tutorials/rt-task/) 
-    on the jsPsych website. Note that the code here is a little different
-    than the original.
-
-    Specifically, the code here is better. 😉
-
-    ${anykey}
-    `)
-
-  };
-
-  var instructions_block = {
-    type: "html-keyboard-response",
-    // Sometimes we do need the additional control of html.
-    // We can mix markdown with html, but you can't use markdown
-    // inside an html element, which is why we use <b>html bold tags</b> 
-    // instead of the prettier **markdown format**.
-    stimulus: markdown(`
-      # Instructions
-
-      In this experiment, a circle will appear in the center 
-      of the screen. If the circle is **blue**, 
-      press the letter F on the keyboard as fast as you can.
-      If the circle is **orange**, do not press 
-      any key.
-      
-      <div class='center'>
-        <div class='left center'>
-          <img src='static/images/blue.png'></img>
-          <p><b>Press the F key</b></p>
-        </div>
-        <div class='right center'>
-          <img src='static/images/orange.png'></img>
-          <p><b>Do not press a key</b></p>
-        </div>
-      </div>
-
-      ${anykey}
+    Thanks for accepting our HIT! In this HIT, you will solve block
+    puzzles. On each round, you will see two sets of blocks. Your task
+    is to make the one on the left look like the one on the right.
     `),
-    timing_post_trial: 2000
+    choices: ['Continue'],
+    button_html: '<button class="btn btn-primary">%choice%</button>'
+  };
+  var test = {
+    type: 'blockworld',
+    timeline: [
+      {
+        initial: [['A', 'B'], [], []],
+        goal: [['A'], ['B'], []],
+      },
+      {
+        initial: [
+          ['A', 'C'],
+          ['B'],
+          [],
+        ],
+        goal: [
+          ['C', 'B', 'A'],
+          [],
+          [],
+        ]
+      },
+      {
+        initial: [['A', 'B', 'C'], [], []],
+        goal: [['C', 'B', 'A'], [], []]
+      }
+    ]
   };
 
-  /////////////////
-  // Test trials //
-  /////////////////
+  var debrief = {
+    type: 'html-button-response',
+    stimulus: markdown(`
+    # HIT complete
 
-  /////////////////////////
-  // Experiment timeline //
-  /////////////////////////
+    Thanks for participating!
+    `),
+    choices: ['Continue'],
+    button_html: '<button class="btn btn-primary">%choice%</button>'
+  };
+
 
   // `timeline` determines the high-level structure of the experiment. When
   // developing the experiment, you can comment out blocks you aren't working
@@ -87,9 +66,8 @@ async function initializeExperiment() {
   // working on.
   var timeline = [
     // welcome_block,
-    // instructions_block,
-    // sorting,
-    test_block,
+    instructions,
+    test,
     // debrief_block,
   ];
 
@@ -102,6 +80,6 @@ async function initializeExperiment() {
       // min_height: 600
     },
   });
-};
+}
 
 
