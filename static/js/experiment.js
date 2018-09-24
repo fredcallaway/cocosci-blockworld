@@ -1,9 +1,55 @@
-async function initializeExperiment() {
-  LOG_DEBUG('initializeExperiment');
+/* jshint ignore:start */
+async function loadData() {
+  return {
+    trials: await $.getJSON('static/json/trials.json')
+  };
+}
 
+async function start() {
+  var data = loadData();
+  var ready = Promise.all([data, saveData(), sleep(2000)]);
+  ready
+    .then(function() {
+      $('#welcome').hide();
+      initializeExperiment(data).catch(handleError);
+    })
+    .catch(function() {
+      $('#data-error').show();
+    });
+}
+/* jshint ignore:end */
+
+
+$(window).on('load', start);
+
+function initializeExperiment(data) {
+  trials = data.trials;
+  LOG_DEBUG('initializeExperiment');
   ///////////
   // Setup //
   ///////////
+  trials = [
+    {
+      initial: [['A', 'B'], [], []],
+      goal: [['A'], ['B'], []],
+    },
+    {
+      initial: [
+        ['A', 'C'],
+        ['B'],
+        [],
+      ],
+      goal: [
+        ['C', 'B', 'A'],
+        [],
+        [],
+      ]
+    },
+    {
+      initial: [['A', 'B', 'C'], [], []],
+      goal: [['C', 'B', 'A'], [], []]
+    }
+  ];
   
   // trials = await $.getJSON 'static/json/rewards/increasing.json'
   const N_TRIAL = 4;
@@ -24,28 +70,7 @@ async function initializeExperiment() {
   };
   var test = {
     type: 'blockworld',
-    timeline: [
-      {
-        initial: [['A', 'B'], [], []],
-        goal: [['A'], ['B'], []],
-      },
-      {
-        initial: [
-          ['A', 'C'],
-          ['B'],
-          [],
-        ],
-        goal: [
-          ['C', 'B', 'A'],
-          [],
-          [],
-        ]
-      },
-      {
-        initial: [['A', 'B', 'C'], [], []],
-        goal: [['C', 'B', 'A'], [], []]
-      }
-    ]
+    timeline: trials
   };
 
   var debrief = {
