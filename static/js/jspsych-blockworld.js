@@ -21,8 +21,9 @@ jsPsych.plugins.blockworld = (function() {
   }
 
   class BlockWorld {
-    constructor(state) {
+    constructor(state, heightLimits) {
       this.state = state;
+      this.heightLimits = heightLimits;
       this.height = 500;
       
       this.div = $('<div>', {
@@ -39,6 +40,17 @@ jsPsych.plugins.blockworld = (function() {
         width: state.length * 100,
         height: this.height
       }).appendTo(this.div);
+
+      // We don't supply height limits for goal state to reduce visual noise.
+      if (heightLimits) {
+        for (let col of _.range(this.state.length)) {
+          const h = this.heightLimits[col];
+          const sc = $('<div>', {class: 'stage-column'})
+            .css('height', h * 100)
+            .appendTo(this.stage);
+          setPos(sc[0], this.loc2pos(col, h-1));
+        }
+      }
 
       this.blocks = _.chain(state)
         .flatten()
@@ -66,6 +78,10 @@ jsPsych.plugins.blockworld = (function() {
     createDropZones(startCol) {
       for (let col of _.range(this.state.length)) {
         if (col == startCol) continue;
+        // Once we have more blocks than our height limit, we don't create a drop zone.
+        if (this.state[col].length >= this.heightLimits[col]) {
+          continue;
+        }
         let dzContainer = $('<div>', {class: 'dropzone-container'});
         let dz = $('<div>', {class: 'dropzone'});
         dz.appendTo(dzContainer);
@@ -107,12 +123,17 @@ jsPsych.plugins.blockworld = (function() {
     // var state = trial.initial;
     // await sleep(1000);
     var goal = trial.goal;
+    let heightLimits = trial.heightLimits;
+    if (!heightLimits) {
+      const numBlocks = trial.initial.map(c => c.length).reduce((acc, c) => acc + c);
+      heightLimits  = trial.initial.map(c => numBlocks);
+    }
 
     function goalTest(state) {
       return _.isEqual(state, goal);
     }
 
-    var world = new BlockWorld(trial.initial);
+    var world = new BlockWorld(trial.initial, heightLimits);
     world.appendTo(display_element);
     world.makeDraggable();
 
