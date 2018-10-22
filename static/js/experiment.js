@@ -9,7 +9,7 @@ async function start() {
   var data = loadData();
   var ready = Promise.all([data, saveData(), sleep(2000)]);
   ready
-    .then(function() {
+    .then(function([data, saveResult, _sleep]) {
       $('#welcome').hide();
       initializeExperiment(data).catch(handleError);
     })
@@ -28,32 +28,6 @@ function initializeExperiment(data) {
   ///////////
   // Setup //
   ///////////
-  trials = [
-    {
-      initial: [['A', 'B'], [], []],
-      goal: [['A'], ['B'], []],
-    },
-    {
-      initial: [
-        ['A', 'C'],
-        ['B'],
-        [],
-      ],
-      goal: [
-        ['C', 'B', 'A'],
-        [],
-        [],
-      ]
-    },
-    {
-      initial: [['A', 'B', 'C'], [], []],
-      goal: [['C', 'B', 'A'], [], []]
-    }
-  ];
-  
-  // trials = await $.getJSON 'static/json/rewards/increasing.json'
-  const N_TRIAL = 4;
-  // var anykey = "<div class='lower message'>Press any key to continue.</div>";
 
   var instructions = {
     type: "html-button-response",
@@ -114,5 +88,3 @@ function initializeExperiment(data) {
     },
   });
 }
-
-
