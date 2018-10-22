@@ -33,6 +33,11 @@
   pointer-events: none; 
 
 }
+.dropzone-container {
+  position: absolute;
+  width: 100px;
+  pointer-events: none;
+}
 .drop-target {
   border: 2px black solid;
   /*background-color: #fce;*/

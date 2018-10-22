@@ -62,8 +62,16 @@ function initializeExperiment(data) {
     # Instructions
 
     Thanks for accepting our HIT! In this HIT, you will solve block
-    puzzles. On each round, you will see two sets of blocks. Your task
-    is to make the one on the left look like the one on the right.
+    puzzles. On each round, you will see two sets of blocks.
+
+    Your task is to stack the blocks on the left so they match the blocks on the
+    right. You can only move the top block in each column. Stack the blocks in
+    alphabetical order in the middle column.
+
+    Here's an example with 3 blocks:
+
+    <img width="355" src="static/images/blockworld.gif" />
+
     `),
     choices: ['Continue'],
     button_html: '<button class="btn btn-primary">%choice%</button>'

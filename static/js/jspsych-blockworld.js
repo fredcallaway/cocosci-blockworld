@@ -66,9 +66,13 @@ jsPsych.plugins.blockworld = (function() {
     createDropZones(startCol) {
       for (let col of _.range(this.state.length)) {
         if (col == startCol) continue;
+        let dzContainer = $('<div>', {class: 'dropzone-container'});
         let dz = $('<div>', {class: 'dropzone'});
-        dz.appendTo(this.stage);
-        setPos(dz[0], this.loc2pos(col, this.state[col].length));
+        dz.appendTo(dzContainer);
+        setPos(dz[0], this.loc2pos(0, this.state[col].length));
+        dzContainer.appendTo(this.stage);
+        setPos(dzContainer[0], [col * 100, 0]);
+        dzContainer.css('height', this.height);
       }
     }
 
@@ -165,7 +169,7 @@ jsPsych.plugins.blockworld = (function() {
           let pos = dropPos || pickupPos;
           // console.log(`drop ${event.target.id} at ${pos}`);
           setPos(event.target, pos);
-          $('.dropzone').remove();
+          $('.dropzone-container').remove();
           if (dropPos) {
             // Successful move.
             let pickupCol = pickupPos[0] / 100;
@@ -184,34 +188,40 @@ jsPsych.plugins.blockworld = (function() {
         }
       });
 
-    interact('.dropzone').dropzone({
+    interact('.dropzone-container').dropzone({
       accept: '.block',
       overlap: 0.55,  // overlap necessary to allow drop
 
       ondropactivate: function (event) {
-        event.target.classList.add('drop-active');
+        const dropzone = event.target.querySelector('.dropzone');
+        dropzone.classList.add('drop-active');
       },
       ondragenter: function (event) {
         // console.log('dragenter');
+        // HACK this is a bit tricky with the dropzone-container. This is getting from
+        // the container, which has a correct data-x. But should not get from the dropzone
+        // which has data-x=0.
         dropPos = getPos(event.target);
         var draggableElement = event.relatedTarget,
-            dropzoneElement = event.target;
+            dropzoneElement = event.target.querySelector('.dropzone');
 
         dropzoneElement.classList.add('drop-target');
         draggableElement.classList.add('can-drop');
       },
       ondragleave: function (event) {
         // console.log('dragleave');
+        const dropzone = event.target.querySelector('.dropzone');
         dropPos = null;
-        event.target.classList.remove('drop-target');
+        dropzone.classList.remove('drop-target');
         event.relatedTarget.classList.remove('can-drop');
       },
       ondrop: function (event) {
         // console.log('dropzone');
       },
       ondropdeactivate: function (event) {
-        event.target.classList.remove('drop-active');
-        event.target.classList.remove('drop-target');
+        const dropzone = event.target.querySelector('.dropzone');
+        dropzone.classList.remove('drop-active');
+        dropzone.classList.remove('drop-target');
       }
     });
   };
