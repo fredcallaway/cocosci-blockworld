@@ -56,18 +56,6 @@
   padding: 0px 10px 1px 10px;
   margin: 20px;
 }
-.stage-column {
-  /*
-  We programmatically vary two styles for this:
-  transform: translate(0px, 400px);
-  height: 500px;
-  */
-  position: absolute;
-  width: 100px;
-  background-color: rgba(0, 0, 0, 0.1);
-  z-index: -1;
-  border-radius: 10px;
-}
 .goal {
   float: left;
   border: 5px #ffdd47 solid;
