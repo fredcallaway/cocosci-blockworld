@@ -23,7 +23,15 @@ async function start() {
 $(window).on('load', start);
 
 function initializeExperiment(data) {
-  trials = data.trials;
+  // We select a 3-block trial, a 4-block trial, and
+  // then present a shuffled version of the 5-block trials.
+  // The key to the trials dictionary is a description of the
+  // parameters used to generate the problem. B is the number of
+  // blocks, H is the height limits.
+  const trials = [
+    _.sample(data.trials['B=3,H=3,3,3']),
+    _.sample(data.trials['B=4,H=4,4,4']),
+  ].concat(_.shuffle(data.trials['B=5,H=5,5,5']));
   LOG_DEBUG('initializeExperiment');
   ///////////
   // Setup //
