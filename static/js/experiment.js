@@ -75,14 +75,22 @@ function initializeExperiment(data) {
   };
 
   var debrief = {
-    type: 'html-button-response',
-    stimulus: markdown(`
+    type: 'survey-text',
+    preamble: markdown(`
     # HIT complete
 
-    Thanks for participating!
+    Thanks for participating! Please answer the questions below before
+    submitting the HIT.    
     `),
-    choices: ['Continue'],
-    button_html: '<button class="btn btn-primary">%choice%</button>'
+    button_label: 'Submit',
+    questions: [
+      {'prompt': 'Was anything confusing or hard to understand?',
+       'rows': 2, columns: 60},
+      {'prompt': 'Do you have any suggestions on how we can improve the instructions or interface?',
+       'rows': 2, columns: 60},
+      {'prompt': 'Any other comments?',
+       'rows': 2, columns: 60}
+    ]
   };
 
 
@@ -94,7 +102,7 @@ function initializeExperiment(data) {
     // welcome_block,
     instructions,
     test,
-    // debrief_block,
+    debrief,
   ];
 
 
