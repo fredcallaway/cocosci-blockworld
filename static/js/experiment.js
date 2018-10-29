@@ -48,9 +48,9 @@ function initializeExperiment(data) {
     puzzles. There are ${trials.length} puzzles for you to solve.
 
     On each round, you will see two sets of blocks. Your task is to stack the
-    blocks on the left so they match the blocks on the right. You can only
-    move the top block in each column. Stack the blocks in alphabetical order
-    in the middle column.
+    blocks on the left so that they match the blocks on the right. The blocks
+    on the right will always be in alphabetical order in the middle column.
+    You can only move the top block in each column.
 
     Here's an example with 3 blocks:
 
