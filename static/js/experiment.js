@@ -33,6 +33,7 @@ function initializeExperiment(data) {
     _.sample(data.trials['B=4,H=4,4,4']),
   ].concat(_.shuffle(data.trials['B=5,H=5,5,5']));
   LOG_DEBUG('initializeExperiment');
+
   ///////////
   // Setup //
   ///////////
@@ -44,11 +45,12 @@ function initializeExperiment(data) {
     # Instructions
 
     Thanks for accepting our HIT! In this HIT, you will solve block
-    puzzles. On each round, you will see two sets of blocks.
+    puzzles. There are ${trials.length} puzzles for you to solve.
 
-    Your task is to stack the blocks on the left so they match the blocks on the
-    right. You can only move the top block in each column. Stack the blocks in
-    alphabetical order in the middle column.
+    On each round, you will see two sets of blocks. Your task is to stack the
+    blocks on the left so they match the blocks on the right. You can only
+    move the top block in each column. Stack the blocks in alphabetical order
+    in the middle column.
 
     Here's an example with 3 blocks:
 
@@ -58,9 +60,18 @@ function initializeExperiment(data) {
     choices: ['Continue'],
     button_html: '<button class="btn btn-primary">%choice%</button>'
   };
+  var progress = function() {
+    var total = trials.length;
+    var i = 0;
+    return function() {
+      i += 1;
+      jsPsych.setProgressBar(i/total);
+    };
+  };
   var test = {
     type: 'blockworld',
-    timeline: trials
+    timeline: trials,
+    on_finish: progress()
   };
 
   var debrief = {
@@ -89,6 +100,8 @@ function initializeExperiment(data) {
 
   return startExperiment({
     timeline,
+    show_progress_bar: true,
+    auto_update_progress_bar: false,
     auto_preload: false,
     exclusions: {
       // min_width: 800,
