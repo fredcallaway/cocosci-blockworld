@@ -40,18 +40,18 @@ saveData = function() {
     }
     timeout = delay(5000, function() {
       console.log('TIMEOUT');
-      return reject('timeout');
+      reject('timeout');
     });
-    return psiturk.saveData({
+    psiturk.saveData({
       error: function() {
         clearTimeout(timeout);
         console.log('Error saving data!');
-        return reject('error');
+        reject('error');
       },
       success: function() {
         clearTimeout(timeout);
         console.log('Data saved to psiturk server.');
-        return resolve();
+        resolve();
       }
     });
   });
@@ -59,11 +59,10 @@ saveData = function() {
 
 // This function is called once at the end of initializeExperiment.
 startExperiment = function(config) {
-  var defaults;
   psiturk.recordUnstructuredData('condition', CONDITION);
   psiturk.recordUnstructuredData('startTime', Date.now());
   LOG_DEBUG('run');
-  defaults = {
+  var defaults = {
     display_element: 'jspsych-target',
     on_finish: function() {
       if (DEBUG) {
@@ -81,11 +80,10 @@ startExperiment = function(config) {
 };
 
 submitHit = function() {
-  var promptResubmit, triesLeft;
   console.log('submitHit');
   $('#jspsych-target').html('<div id="load-icon"></div>');
-  triesLeft = 1;
-  promptResubmit = function() {
+  var triesLeft = 1;
+  var promptResubmit = function() {
     console.log('promptResubmit');
     if (triesLeft) {
       console.log('try again', triesLeft);
