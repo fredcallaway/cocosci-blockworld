@@ -61,18 +61,23 @@ function initializeExperiment(data) {
     choices: ['Continue'],
     button_html: '<button class="btn btn-primary">%choice%</button>'
   };
-  var progress = function() {
+
+  var updateProgress = function() {
     var total = trials.length;
     var i = 0;
     return function() {
       i += 1;
       jsPsych.setProgressBar(i/total);
     };
-  };
+  }();
+  
   var test = {
     type: 'blockworld',
     timeline: trials,
-    on_finish: progress()
+    on_finish() {
+      updateProgress();
+      saveData();
+    }
   };
 
   var debrief = {
