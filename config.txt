@@ -1,5 +1,5 @@
 [HIT Configuration]
-title = Block stacking experiment
+title = Block stacking experiment (~15 minutes)
 description = Solve block stacking puzzles in this Psychology experiment
 amt_keywords = Psychology
 lifetime = 24
@@ -34,7 +34,7 @@ num_conds = 1
 num_counters = 1
 
 [Shell Parameters]
-launch_in_sandbox_mode = true
+launch_in_sandbox_mode = false
 bonus_message = "Thanks for participating!"
 
 # If you are not using the psiturk ad server, set `use_psiturk_ad_server` to `false` and point `ad_location` to your proxy server <host> and <port>. Format the ad_location like this:
