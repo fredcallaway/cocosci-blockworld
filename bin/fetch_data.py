@@ -1,8 +1,8 @@
 #!/usr/bin/env python2
+from __future__ import print_function
 
 import os
 import logging
-import urllib2
 import pandas as pd
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import ast
@@ -10,7 +10,16 @@ import re
 import json
 from collections import defaultdict
 
+from psiturk.amt_services_wrapper import MTurkServicesWrapper, Participant, init_db, db_session
+
+
 logging.basicConfig(level="INFO")
+
+wrapper = MTurkServicesWrapper()
+amt = wrapper.amt_services
+config = wrapper.config
+
+init_db()
 
 def to_snake_case(name):
     name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
@@ -37,34 +46,16 @@ class Labeler(object):
 
     __call__ = label
 
-def add_auth(url, username, password):
-    """Add HTTP authencation for opening urls with urllib2.
+def get_participants(codeversion):
+    return (
+        Participant
+        .query
+        .filter(Participant.codeversion == codeversion)
+        .filter(Participant.mode == 'live')  # only take completed
+        .all()
+    )
 
-    Based on http://www.voidspace.org.uk/python/articles/authentication.shtml
-    """
-    passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
-
-    # because we have put None at the start it will always use this
-    # username/password combination for urls for which `theurl` is a super-url
-    passman.add_password(None, url, username, password)
-
-    # create the AuthHandler
-    authhandler = urllib2.HTTPBasicAuthHandler(passman)
-
-    # All calls to urllib2.urlopen will now use our handler. Make sure not to
-    # include the protocol in with the URL, or HTTPPasswordMgrWithDefaultRealm
-    # will be very confused.  You must (of course) use it when fetching the
-    # page though.
-    opener = urllib2.build_opener(authhandler)
-    urllib2.install_opener(opener)
-
-
-def fetch(site_root, filename, version, force=True):
-    """Download `filename` from `site_root` and save it in the
-    data/human_raw/`version` data folder.
-    """
-    url = os.path.join(site_root, version, filename)
-
+def fetch(filename, version, force=True):
     # get the destination to save the data, and don't do anything if
     # it exists already
     dest = os.path.join('data/human_raw', version, "{}.csv".format(os.path.splitext(filename)[0]))
@@ -72,29 +63,25 @@ def fetch(site_root, filename, version, force=True):
         print('{} already exists. Use --force to overwrite.'.format(dest))
         return
 
-    # download the data
-    try:
-        handler = urllib2.urlopen(url)
-    except IOError as err:
-        if getattr(err, 'code', None) == 401:
-            logging.error("Server authentication failed.")
-            raise err
-        else:
-            raise
-    else:
-        data = handler.read()
-        logging.info("Fetched succesfully: %s", url)
+    contents = {
+        "trialdata": lambda p: p.get_trial_data(),
+        "eventdata": lambda p: p.get_event_data(),
+        "questiondata": lambda p: p.get_question_data()
+    }
+
+    data = (contents[filename](p) for p in get_participants(version))
 
     # write out the data file
     if not os.path.exists(os.path.dirname(dest)):
         os.makedirs(os.path.dirname(dest))
     with open(dest, "w") as fh:
-        fh.write(data)
+        for d in data:
+            fh.write(d)
     logging.info("Saved to '%s'", os.path.relpath(dest))
-    if filename == 'questiondata':
-        df = pd.read_csv(dest, header=None)
-        n_pid = df[0].unique().shape[0]
-        logging.info('Number of participants: %s', n_pid)
+    # if filename == 'questiondata':
+    #     df = pd.read_csv(dest, header=None)
+    #     n_pid = df[0].unique().shape[0]
+    #     logging.info('Number of participants: %s', n_pid)
 
 
 def reformat_data(version):
@@ -171,11 +158,14 @@ def reformat_data(version):
 
     return data
 
-def main(version, address, username, password):
-    add_auth(address, username, password)
-    files = ["trialdata", "eventdata", "questiondata"]
+def main(version):
+    if version == "1.0":
+        files = ["trialdata", "eventdata"]
+    else:
+        files = ["trialdata", "eventdata", "questiondata"]
     for filename in files:
-        fetch(address, filename, version)
+        fetch(filename, version)
+    reformat_data(version)
 
 
 if __name__ == "__main__":
@@ -187,10 +177,5 @@ if __name__ == "__main__":
               "parameter in the psiTurk config.txt file that was used when the "
               "data was collected."))
 
-    url = "https://ball-exp.herokuapp.com/data"
-    if url == "https://ball-exp.herokuapp.com/data":
-        print('Set the URL in this file before usage. Then delete this ')
-        exit(1)
-
     args = parser.parse_args()
-    main(args.version, url, 'user', 'pw')  # from config.txt
+    main(args.version)
