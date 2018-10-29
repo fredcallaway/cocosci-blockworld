@@ -29,6 +29,7 @@ if (DEBUG) {
 
 // ---------- Initialize PsiTurk ---------- #
 psiturk = new PsiTurk(uniqueId, adServerLoc, mode);
+psiturk.recordUnstructuredData('condition', CONDITION);
 
 saveData = function() {
   console.log('saveData');
@@ -59,7 +60,6 @@ saveData = function() {
 
 // This function is called once at the end of initializeExperiment.
 startExperiment = function(config) {
-  psiturk.recordUnstructuredData('condition', CONDITION);
   psiturk.recordUnstructuredData('startTime', Date.now());
   LOG_DEBUG('run');
   var defaults = {
