@@ -60,6 +60,8 @@ saveData = function() {
 // This function is called once at the end of initializeExperiment.
 startExperiment = function(config) {
   var defaults;
+  psiturk.recordUnstructuredData('condition', CONDITION);
+  psiturk.recordUnstructuredData('startTime', Date.now());
   LOG_DEBUG('run');
   defaults = {
     display_element: 'jspsych-target',
