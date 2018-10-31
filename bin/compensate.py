@@ -13,8 +13,12 @@ config = wrapper.config
 
 init_db()
 
-assert not amt.is_sandbox
-assert amt.connect_to_turk()
+if amt.is_sandbox:
+    print('ERROR: Set "launch_in_sandbox_mode = false" in config.txt')
+    exit(1)
+if not amt.connect_to_turk():
+    print('ERROR: Failed to connect to turk for some inexplicable reason.')
+    exit(1)
 
 class ApproveError(Exception): pass
 class BonusError(Exception): pass
@@ -51,7 +55,6 @@ def approve_all():
 
 def bonus_all():
     for participant in Participant.query.filter(Participant.status == 5).all():
-        participant.bonus = 0.15
         if participant.bonus > 0:
             try:
                 bonus(participant)
