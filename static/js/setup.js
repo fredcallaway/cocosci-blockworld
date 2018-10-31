@@ -60,23 +60,26 @@ saveData = function() {
 
 // This function is called once at the end of initializeExperiment.
 startExperiment = function(config) {
-  psiturk.recordUnstructuredData('startTime', Date.now());
-  LOG_DEBUG('run');
-  var defaults = {
-    display_element: 'jspsych-target',
-    on_finish: function() {
-      if (DEBUG) {
-        return jsPsych.data.displayData();
-      } else {
-        return submitHit();
+  new Promise((resolve, reject) => {
+    psiturk.recordUnstructuredData('startTime', Date.now());
+    LOG_DEBUG('run');
+    var defaults = {
+      display_element: 'jspsych-target',
+      on_finish: function() {
+        if (DEBUG) {
+          return jsPsych.data.displayData();
+        } else {
+          return submitHit();
+        }
+      },
+      on_data_update: function(data) {
+        console.log('data', data);
+        return psiturk.recordTrialData(data);
       }
-    },
-    on_data_update: function(data) {
-      console.log('data', data);
-      return psiturk.recordTrialData(data);
-    }
-  };
-  return jsPsych.init(_.extend(defaults, config));
+    };
+    return jsPsych.init(_.extend(defaults, config));
+  })
+    .catch(handleError);
 };
 
 submitHit = function() {
@@ -100,7 +103,10 @@ submitHit = function() {
       });
     }
   };
-  return saveData().then(psiturk.completeHIT).catch(promptResubmit).then(psiturk.completeHIT);
+  saveData()
+    .then(psiturk.completeHIT)
+    .catch(promptResubmit)
+    .then(psiturk.completeHIT);
 };
 
 if (!DEBUG) { 

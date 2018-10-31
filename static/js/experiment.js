@@ -11,7 +11,7 @@ async function start() {
   ready
     .then(function([data, saveResult, _sleep]) {
       $('#welcome').hide();
-      initializeExperiment(data).catch(handleError);
+      initializeExperiment(data);
     })
     .catch(function() {
       $('#data-error').show();
@@ -106,13 +106,12 @@ function initializeExperiment(data) {
   // working on.
   var timeline = [
     // welcome_block,
-    instructions,
+    // instructions,
     test,
     debrief,
   ];
 
-
-  return startExperiment({
+  startExperiment({
     timeline,
     show_progress_bar: true,
     auto_update_progress_bar: false,
