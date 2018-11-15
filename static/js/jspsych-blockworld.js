@@ -148,7 +148,9 @@ jsPsych.plugins.blockworld = (function() {
     var pickupPos = null;
     interact('.draggable')
       .draggable({
-        inertia: true,
+        // Removing inertia as it causes some lag in my browser. We assume this
+        // is the cause of UI freezing that has been reported by users.
+        inertia: false,
         restrict: {  // keep the element within the area of it's parent
           restriction: "parent",
           endOnly: false,

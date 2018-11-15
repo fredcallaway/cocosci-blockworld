@@ -23,6 +23,8 @@ async function start() {
 $(window).on('load', start);
 
 function initializeExperiment(data) {
+  // Saving some subject metadata
+  psiturk.recordUnstructuredData('browser', window.navigator.userAgent);
 
   // We select a 3-block trial, a 4-block trial, and
   // then present a shuffled version of the 5-block trials.
