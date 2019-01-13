@@ -3,14 +3,14 @@
   /*border: 1px white solid;*/
   /*margin: 10px;*/
   position: absolute;
-  width: 100px;
-  height: 100px;
+  width: 90px;
+  height: 90px;
   border: 2px black solid;
 
   text-align: center;
   vertical-align: middle;
-  line-height: 100px;       /* the same as your div height */
-  font-size: 50pt;
+  line-height: 90px;       /* the same as your div height */
+  font-size: 45pt;
 
   background-color: #29e;
   color: white;
@@ -26,8 +26,8 @@
 
 .dropzone {
   position: absolute;
-  width: 98px;
-  height: 100px;
+  width: 90px;
+  height: 90px;
   /*border: 2px #29e dashed;*/
   border-radius: 10px;
   pointer-events: none; 
@@ -35,7 +35,7 @@
 }
 .dropzone-container {
   position: absolute;
-  width: 100px;
+  width: 90px;
   pointer-events: none;
 }
 .drop-target {
@@ -96,6 +96,10 @@
   max-width: 800px;
   margin: auto;
   margin-top: 20px;
+}
+
+.jspsych-content {
+  margin-top: 0;
 }
 
 .center {

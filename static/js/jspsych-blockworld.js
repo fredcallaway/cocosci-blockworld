@@ -1,6 +1,9 @@
 'use strict';
 /* globals BLOCKS: true, $, _, jsPsych, interact, console, showModal */
 
+// Block size in pixels. Should match CSS.
+const blockSize = 90;
+
 jsPsych.plugins.blockworld = (function() {
   function getPos(el) {
     return [parseFloat(el.getAttribute('data-x')) || 0,
@@ -23,7 +26,10 @@ jsPsych.plugins.blockworld = (function() {
   class BlockWorld {
     constructor(state) {
       this.state = state;
-      this.height = 500;
+      const numBlocks = state.reduce(function(acc, col) {
+        return acc + col.length; }, 0)
+      // We make it at least 5 blocks tall.
+      this.height = Math.max(numBlocks, 5) * blockSize;
       
       this.div = $('<div>', {
         class: 'stage'
@@ -36,7 +42,7 @@ jsPsych.plugins.blockworld = (function() {
 
       this.stage = $('<div>', {
         // class: 'stage',
-        width: state.length * 100,
+        width: state.length * blockSize,
         height: this.height
       }).appendTo(this.div);
 
@@ -56,7 +62,7 @@ jsPsych.plugins.blockworld = (function() {
     }
 
     loc2pos(col, height) {
-      return [col * 100, this.height - 100*(height+1)];
+      return [col * blockSize, this.height - blockSize*(height+1)];
     } 
 
     appendTo(element) {
@@ -71,7 +77,7 @@ jsPsych.plugins.blockworld = (function() {
         dz.appendTo(dzContainer);
         setPos(dz[0], this.loc2pos(0, this.state[col].length));
         dzContainer.appendTo(this.stage);
-        setPos(dzContainer[0], [col * 100, 0]);
+        setPos(dzContainer[0], [col * blockSize, 0]);
         dzContainer.css('height', this.height);
       }
     }
@@ -161,7 +167,7 @@ jsPsych.plugins.blockworld = (function() {
           dropPos = null;
           // console.log(`pickup ${event.target.id} at ${pickupPos}`);
           $(event.target).css('opacity', 0.5);
-          world.createDropZones(getPos(event.target)[0] / 100);
+          world.createDropZones(getPos(event.target)[0] / blockSize);
         },
         onmove: function(event) {
           shift(event.target, event.dx, event.dy);
@@ -174,8 +180,8 @@ jsPsych.plugins.blockworld = (function() {
           $('.dropzone-container').remove();
           if (dropPos) {
             // Successful move.
-            let pickupCol = pickupPos[0] / 100;
-            let dropCol = dropPos[0] / 100;
+            let pickupCol = pickupPos[0] / blockSize;
+            let dropCol = dropPos[0] / blockSize;
             world.state[dropCol].push(world.state[pickupCol].pop());
             console.log(state2string(world.state));
             data.states.push(state2string(world.state));
