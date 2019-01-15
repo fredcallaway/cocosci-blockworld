@@ -109,7 +109,7 @@ function initializeExperiment(data) {
   // working on.
   var timeline = [
     // welcome_block,
-    // instructions,
+    instructions,
     test,
     debrief,
   ];
