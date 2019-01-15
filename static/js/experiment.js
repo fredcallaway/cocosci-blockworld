@@ -26,15 +26,16 @@ function initializeExperiment(data) {
   // Saving some subject metadata
   psiturk.recordUnstructuredData('browser', window.navigator.userAgent);
 
-  // We select a 3-block trial, a 4-block trial, and
-  // then present a shuffled version of the 5-block trials.
+  // We select various short trials to let participants become
+  // familiar, then present a shuffled version of the complex trials.
   // The key to the trials dictionary is a description of the
   // parameters used to generate the problem. B is the number of
-  // blocks, H is the height limits.
+  // blocks.
   const trials = [
-    _.sample(data.trials['B=3,H=3,3,3']),
-    _.sample(data.trials['B=4,H=4,4,4']),
-  ].concat(_.shuffle(data.trials['B=5,H=5,5,5']));
+    _.sample(data.trials['B=3']),
+    _.sample(data.trials['B=4']),
+    _.sample(data.trials['B=5']),
+  ].concat(_.shuffle(data.trials['B=6']));
   LOG_DEBUG('initializeExperiment');
 
   ///////////
@@ -72,7 +73,7 @@ function initializeExperiment(data) {
       jsPsych.setProgressBar(i/total);
     };
   }();
-  
+
   var test = {
     type: 'blockworld',
     timeline: trials,
@@ -88,7 +89,7 @@ function initializeExperiment(data) {
     # HIT complete
 
     Thanks for participating! Please answer the questions below before
-    submitting the HIT.    
+    submitting the HIT.
     `),
     button_label: 'Submit',
     questions: [
