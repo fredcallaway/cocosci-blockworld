@@ -28,15 +28,19 @@ jsPsych.plugins.blockworld = (function() {
     constructor(points, highStakes) {
       this._points = points;
       this._decrement = 1;
+      // Mostly just storing this variable so we can capture it in state later on
+      this.multiplier = 1;
       this.el = $('<div>', {class: 'Blockworld-points'});
       $('<span>Points: </span>').appendTo(this.el);
       this.elPoints = $('<span>').appendTo($('<b>').appendTo(this.el));
 
       if (highStakes) {
-        this._points *= highStakesMultiplier;
-        this._decrement *= highStakesMultiplier;
+        this.multiplier = highStakesMultiplier;
         $('<div>', {class: 'Blockworld-highStakes'}).text('High Stakes!').appendTo(this.el);
       }
+
+      this._points *= this.multiplier;
+      this._decrement *= this.multiplier;
 
       this.render();
     }
@@ -149,7 +153,7 @@ jsPsych.plugins.blockworld = (function() {
       return _.isEqual(state, goal);
     }
 
-    var points = new Points(trial.points || 42, trial.highStakes);
+    var points = new Points(trial.initial_points, trial.highStakes);
     points.el.appendTo(display_element);
 
     var world = new BlockWorld(trial.initial);
@@ -169,8 +173,16 @@ jsPsych.plugins.blockworld = (function() {
 
     function complete() {
       console.log('SUCCESS');
+      var total = points.value();
+      var bonus = (total * pointsToBonus).toFixed(2);
       showModal($('<div>')
-        .add($('<h3>', {html: 'Success!'}))
+        .add($('<div>', {html: markdown(`
+          ### Success!
+
+          You got ${total} points on this trial.
+
+          Your bonus for this trial is <b>$${bonus}</b>!
+        `)}))
         .add($('<button>', {
           class: 'btn btn-success',
           text: 'Continue',
@@ -229,6 +241,10 @@ jsPsych.plugins.blockworld = (function() {
             // Handling terminal case
             if (goalTest(world.state)) {
               data.points = points.value();
+              data.multiplier = points.multiplier;
+              // a bit of a HACK to compute it here...
+              data.initial_points = trial.initial_points * points.multiplier;
+              data.high_stakes = trial.highStakes;
               complete();
             }
           }
