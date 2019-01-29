@@ -56,11 +56,11 @@ function initializeExperiment(data) {
   // Now create the second half of the trial.
   const secondHalf = _.shuffle(mainTrials.map(function(trial) {
     const newTrial = _.clone(trial);
-    // We invert the high stakes variable for each trial
+    // We negate the high stakes variable for each trial
     newTrial.highStakes = !newTrial.highStakes;
     // And we flip the column order so it is harder to recall.
-    newTrial.initial = newTrial.initial.slice();
-    newTrial.initial.reverse();
+    newTrial.initial = newTrial.initial.slice(); // copy array first...
+    newTrial.initial.reverse(); // since this modifies in place
     return newTrial;
   }));
 
@@ -127,6 +127,8 @@ function initializeExperiment(data) {
         return trial.hasOwnProperty('points'); });
       var total = pointTrials.reduce(function(acc, trial) { return acc + trial.points; }, 0);
       var bonus = (total * pointsToBonus).toFixed(2);
+      psiturk.recordUnstructuredData('finalPoints', total);
+      psiturk.recordUnstructuredData('finalBonus', bonus);
 
       return markdown(`
         # Total Points
