@@ -41,6 +41,7 @@ function initializeExperiment(data) {
   practice.forEach(function(trial) {
     trial.highStakes = false;
   });
+  practice[1].highStakes = true;
 
   // Now take complex problems & shuffle them, also adding in high stakes conditions.
   const mainTrials = _.shuffle(data.trials['B=6']);
