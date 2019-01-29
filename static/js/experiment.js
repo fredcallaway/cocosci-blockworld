@@ -66,6 +66,29 @@ function initializeExperiment(data) {
     button_html: '<button class="btn btn-primary">%choice%</button>'
   };
 
+  var finalPoints = {
+    type: "html-button-response",
+    // We use the handy markdown function (defined in utils.js) to format our text.
+    stimulus: function() {
+      // HACK this is wrong this is wrong!
+      var pointsToBonus = 0.01;
+      // HACK we should save the price we presented XXX HACK
+
+      var pointTrials = jsPsych.data.get().values().filter(function(trial) {
+        return trial.hasOwnProperty('points'); });
+      var total = pointTrials.reduce(function(acc, trial) { return acc + trial.points; }, 0);
+      var bonus = (total * pointsToBonus).toFixed(2);
+
+      return markdown(`
+        # Total Points
+
+        You were able to collect ${total} points. This will result in a bonus of <b>$${bonus}</b>!
+      `);
+    },
+    choices: ['Continue'],
+    button_html: '<button class="btn btn-primary">%choice%</button>'
+  };
+
   var updateProgress = function() {
     var total = trials.length;
     var i = 0;
@@ -112,6 +135,7 @@ function initializeExperiment(data) {
     // welcome_block,
     instructions,
     test,
+    finalPoints,
     debrief,
   ];
 

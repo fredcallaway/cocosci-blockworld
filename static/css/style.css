@@ -61,6 +61,17 @@
   border: 5px #ffdd47 solid;
 }
 
+.Blockworld-points {
+  font-size: 14px;
+}
+
+.Blockworld-highStakes {
+  text-transform: uppercase;
+  font-weight: bold;
+  color:  red;
+  font-style: italic;
+}
+
 /* A modal pop up box */
 .modal {
     display: block;
