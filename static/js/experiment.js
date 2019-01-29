@@ -72,13 +72,16 @@ function initializeExperiment(data) {
     stimulus: markdown(`
     # Points
 
-    For each round, you will start with some points. Every block costs one point to move.
+    For each round, you will start with some points. Every block costs 1 point to move.
     Once you complete all rounds, your points will be converted into a bonus. Your points
     will never go below 0, and even when they are 0, you should still complete the round.
 
+    When a round is <span class="Blockworld-highStakes">High Stakes!</span>, every block
+    will cost ${highStakesMultiplier} points to move.
+
     Here's an example xxxx:
 
-    <img width="355" src="static/images/blockworld.gif" />
+    <img width="355" src="static/images/points.gif" />
 
     `),
     choices: ['Continue'],

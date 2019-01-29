@@ -3,6 +3,7 @@
 
 // Block size in pixels. Should match CSS.
 const blockSize = 90;
+const highStakesMultiplier = 3;
 
 jsPsych.plugins.blockworld = (function() {
   function getPos(el) {
@@ -32,9 +33,8 @@ jsPsych.plugins.blockworld = (function() {
       this.elPoints = $('<span>').appendTo($('<b>').appendTo(this.el));
 
       if (highStakes) {
-        var multiplier = 3;
-        this._points *= multiplier;
-        this._decrement *= multiplier;
+        this._points *= highStakesMultiplier;
+        this._decrement *= highStakesMultiplier;
         $('<div>', {class: 'Blockworld-highStakes'}).text('High Stakes!').appendTo(this.el);
       }
 
@@ -61,7 +61,7 @@ jsPsych.plugins.blockworld = (function() {
         return acc + col.length; }, 0)
       // We make it at least 5 blocks tall.
       this.height = Math.max(numBlocks, 5) * blockSize;
-      
+
       this.div = $('<div>', {
         class: 'stage'
       });
@@ -94,7 +94,7 @@ jsPsych.plugins.blockworld = (function() {
 
     loc2pos(col, height) {
       return [col * blockSize, this.height - blockSize*(height+1)];
-    } 
+    }
 
     appendTo(element) {
       this.div.appendTo(element);
