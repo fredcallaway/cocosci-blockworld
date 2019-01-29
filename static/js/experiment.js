@@ -19,23 +19,52 @@ async function start() {
 }
 /* jshint ignore:end */
 
+const pointsToBonus = 0.01;
 
 $(window).on('load', start);
 
 function initializeExperiment(data) {
   // Saving some subject metadata
   psiturk.recordUnstructuredData('browser', window.navigator.userAgent);
+  psiturk.recordUnstructuredData('pointsToBonus', pointsToBonus);
 
   // We select various short trials to let participants become
-  // familiar, then present a shuffled version of the complex trials.
+  // familiar.
   // The key to the trials dictionary is a description of the
   // parameters used to generate the problem. B is the number of
   // blocks.
-  const trials = [
+  const practice = [
     _.sample(data.trials['B=3']),
     _.sample(data.trials['B=4']),
     _.sample(data.trials['B=5']),
-  ].concat(_.shuffle(data.trials['B=6']));
+  ];
+  practice.forEach(function(trial) {
+    trial.highStakes = false;
+  });
+
+  // Now take complex problems & shuffle them, also adding in high stakes conditions.
+  const mainTrials = _.shuffle(data.trials['B=6']);
+  // The map gives us half true, half false values and then shuffles them.
+  const mainTrialsHighStakes = _.shuffle(_.range(mainTrials.length).map(function(idx) {
+    return idx % 2 == 0;
+  }));
+  // Add high stakes info to trials.
+  mainTrials.forEach(function(trial, idx) {
+    trial.highStakes = mainTrialsHighStakes[idx];
+  });
+
+  // Now create the second half of the trial.
+  const secondHalf = _.shuffle(mainTrials.map(function(trial) {
+    const newTrial = _.clone(trial);
+    // We invert the high stakes variable for each trial
+    newTrial.highStakes = !newTrial.highStakes;
+    // And we flip the column order so it is harder to recall.
+    newTrial.initial = newTrial.initial.slice();
+    newTrial.initial.reverse();
+    return newTrial;
+  }));
+
+  const trials = practice.concat(mainTrials).concat(secondHalf);
   LOG_DEBUG('initializeExperiment');
 
   ///////////
@@ -62,6 +91,49 @@ function initializeExperiment(data) {
     <img width="355" src="static/images/blockworld.gif" />
 
     `),
+    choices: ['Continue'],
+    button_html: '<button class="btn btn-primary">%choice%</button>'
+  };
+
+  var pointInstructions = {
+    type: "html-button-response",
+    // We use the handy markdown function (defined in utils.js) to format our text.
+    stimulus: markdown(`
+    # Points
+
+    You will begin each round with some number of points. It costs 1 point to move a block.
+    If you lose all your points, they won't go below 0, but you still have to finish the round.
+
+    When a round is <span class="Blockworld-highStakes">High Stakes!</span>, every block
+    will cost ${highStakesMultiplier} points to move, but you will also start with more points.
+
+    At the end of the HIT, we will convert the final points from each round into a bonus payment.
+    You will earn $${pointsToBonus.toFixed(2)} for each point.
+
+    Here's an example:
+
+    <img width="355" src="static/images/points.gif" />
+
+    `),
+    choices: ['Continue'],
+    button_html: '<button class="btn btn-primary">%choice%</button>'
+  };
+
+  var finalPoints = {
+    type: "html-button-response",
+    // We use the handy markdown function (defined in utils.js) to format our text.
+    stimulus: function() {
+      var pointTrials = jsPsych.data.get().values().filter(function(trial) {
+        return trial.hasOwnProperty('points'); });
+      var total = pointTrials.reduce(function(acc, trial) { return acc + trial.points; }, 0);
+      var bonus = (total * pointsToBonus).toFixed(2);
+
+      return markdown(`
+        # Total Points
+
+        You got ${total} points in this HIT. Your bonus for this HIT is <b>$${bonus}</b>!
+      `);
+    },
     choices: ['Continue'],
     button_html: '<button class="btn btn-primary">%choice%</button>'
   };
@@ -111,7 +183,9 @@ function initializeExperiment(data) {
   var timeline = [
     // welcome_block,
     instructions,
+    pointInstructions,
     test,
+    finalPoints,
     debrief,
   ];
 

@@ -3,6 +3,7 @@
 
 // Block size in pixels. Should match CSS.
 const blockSize = 90;
+const highStakesMultiplier = 3;
 
 jsPsych.plugins.blockworld = (function() {
   function getPos(el) {
@@ -23,6 +24,40 @@ jsPsych.plugins.blockworld = (function() {
     move(el, (x, y) => [x+dx, y+dy]);
   }
 
+  class Points {
+    constructor(points, highStakes) {
+      this._points = points;
+      this._decrement = 1;
+      // Mostly just storing this variable so we can capture it in state later on
+      this.multiplier = 1;
+      this.el = $('<div>', {class: 'Blockworld-points'});
+      $('<span>Points: </span>').appendTo(this.el);
+      this.elPoints = $('<span>').appendTo($('<b>').appendTo(this.el));
+
+      if (highStakes) {
+        this.multiplier = highStakesMultiplier;
+        $('<div>', {class: 'Blockworld-highStakes'}).text('High Stakes!').appendTo(this.el);
+      }
+
+      this._points *= this.multiplier;
+      this._decrement *= this.multiplier;
+
+      this.render();
+    }
+    render() {
+      this.elPoints.text(this._points);
+    }
+    decrement() {
+      if (this._points > 0) {
+        this._points -= this._decrement;
+        this.render();
+      }
+    }
+    value() {
+      return this._points;
+    }
+  }
+
   class BlockWorld {
     constructor(state) {
       this.state = state;
@@ -30,7 +65,7 @@ jsPsych.plugins.blockworld = (function() {
         return acc + col.length; }, 0)
       // We make it at least 5 blocks tall.
       this.height = Math.max(numBlocks, 5) * blockSize;
-      
+
       this.div = $('<div>', {
         class: 'stage'
       });
@@ -63,7 +98,7 @@ jsPsych.plugins.blockworld = (function() {
 
     loc2pos(col, height) {
       return [col * blockSize, this.height - blockSize*(height+1)];
-    } 
+    }
 
     appendTo(element) {
       this.div.appendTo(element);
@@ -118,6 +153,9 @@ jsPsych.plugins.blockworld = (function() {
       return _.isEqual(state, goal);
     }
 
+    var points = new Points(trial.initial_points, trial.highStakes);
+    points.el.appendTo(display_element);
+
     var world = new BlockWorld(trial.initial);
     world.appendTo(display_element);
     world.makeDraggable();
@@ -135,8 +173,16 @@ jsPsych.plugins.blockworld = (function() {
 
     function complete() {
       console.log('SUCCESS');
+      var total = points.value();
+      var bonus = (total * pointsToBonus).toFixed(2);
       showModal($('<div>')
-        .add($('<h3>', {html: 'Success!'}))
+        .add($('<div>', {html: markdown(`
+          ### Success!
+
+          You got ${total} points on this trial.
+
+          Your bonus for this trial is <b>$${bonus}</b>!
+        `)}))
         .add($('<button>', {
           class: 'btn btn-success',
           text: 'Continue',
@@ -188,10 +234,19 @@ jsPsych.plugins.blockworld = (function() {
             data.times.push(Date.now() - startTime);
             world.setLayout();
             world.makeDraggable();
+
+            // Successful moves trigger changes to our points.
+            points.decrement();
+
+            // Handling terminal case
             if (goalTest(world.state)) {
+              data.points = points.value();
+              data.multiplier = points.multiplier;
+              // a bit of a HACK to compute it here...
+              data.initial_points = trial.initial_points * points.multiplier;
+              data.high_stakes = trial.highStakes;
               complete();
             }
-            // console.log(JSON.stringify(state));
           }
         }
       });
