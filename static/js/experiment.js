@@ -27,6 +27,7 @@ function initializeExperiment(data) {
   // Saving some subject metadata
   psiturk.recordUnstructuredData('browser', window.navigator.userAgent);
   psiturk.recordUnstructuredData('pointsToBonus', pointsToBonus);
+  psiturk.recordUnstructuredData('timeZone', Intl.DateTimeFormat().resolvedOptions().timeZone);
 
   // We select various short trials to let participants become
   // familiar.
