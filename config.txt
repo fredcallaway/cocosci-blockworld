@@ -29,7 +29,7 @@ secret_key = 'this is my secret key which is hard to guess, i should change this
 adserver_revproxy_host = cocosci-blockworld.herokuapp.com
 
 [Task Parameters]
-experiment_code_version = 1.3
+experiment_code_version = 1.4
 num_conds = 1
 num_counters = 1
 
@@ -39,7 +39,7 @@ bonus_message = "Thanks for participating!"
 
 # If you are not using the psiturk ad server, set `use_psiturk_ad_server` to `false` and point `ad_location` to your proxy server <host> and <port>. Format the ad_location like this:
 #
-#   https://<host>:<port>/ad 
+#   https://<host>:<port>/ad
 
 use_psiturk_ad_server = true
 ad_location = false

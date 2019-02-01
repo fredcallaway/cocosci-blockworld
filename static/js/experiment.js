@@ -39,33 +39,36 @@ function initializeExperiment(data) {
     _.sample(data.trials['B=5']),
   ];
   practice.forEach(function(trial) {
-    trial.highStakes = false;
+    trial.noBonus = false;
   });
-  practice[1].highStakes = true;
+  practice[1].noBonus = true;
 
   // Now take complex problems & shuffle them, also adding in high stakes conditions.
   const mainTrials = _.shuffle(data.trials['B=6']);
   // The map gives us half true, half false values and then shuffles them.
-  const mainTrialsHighStakes = _.shuffle(_.range(mainTrials.length).map(function(idx) {
+  const mainTrialsNoBonus = _.shuffle(_.range(mainTrials.length).map(function(idx) {
     return idx % 2 == 0;
   }));
   // Add high stakes info to trials.
   mainTrials.forEach(function(trial, idx) {
-    trial.highStakes = mainTrialsHighStakes[idx];
+    trial.noBonus = mainTrialsNoBonus[idx];
   });
 
   // Now create the second half of the trial.
   const secondHalf = _.shuffle(mainTrials.map(function(trial) {
     const newTrial = _.clone(trial);
     // We negate the high stakes variable for each trial
-    newTrial.highStakes = !newTrial.highStakes;
+    newTrial.noBonus = !newTrial.noBonus;
     // And we flip the column order so it is harder to recall.
     newTrial.initial = newTrial.initial.slice(); // copy array first...
     newTrial.initial.reverse(); // since this modifies in place
     return newTrial;
   }));
 
-  const trials = practice.concat(mainTrials).concat(secondHalf);
+  var trials = practice.concat(mainTrials).concat(secondHalf);
+  trials.forEach(function(t) {
+    t.highStakes = false;
+  });
   LOG_DEBUG('initializeExperiment');
 
   ///////////
@@ -102,11 +105,11 @@ function initializeExperiment(data) {
     stimulus: markdown(`
     # Points
 
-    You will begin each round with some number of points. It costs 1 point to move a block.
+    You can earn a bonus on some rounds. You will begin these rounds with some number of points.
+    It costs 1 point to move a block.
     If you lose all your points, they won't go below 0, but you still have to finish the round.
 
-    When a round is <span class="Blockworld-highStakes">High Stakes!</span>, every block
-    will cost ${highStakesMultiplier} points to move, but you will also start with more points.
+    Some rounds will have no bonus, so the screen will say <b>No Bonus</b>.
 
     At the end of the HIT, we will convert the final points from each round into a bonus payment.
     You will earn $${pointsToBonus.toFixed(2)} for each point.
