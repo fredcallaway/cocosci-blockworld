@@ -62,7 +62,7 @@ jsPsych.plugins.blockworld = (function() {
   }
 
   class BlockWorld {
-    constructor(state) {
+    constructor(state, hanoi=false) {
       this.state = state;
       const numBlocks = state.reduce(function(acc, col) {
         return acc + col.length; }, 0)
@@ -97,6 +97,7 @@ jsPsych.plugins.blockworld = (function() {
         })
         .object().value();
       this.setLayout();
+      this.hanoi = hanoi;
     }
 
     loc2pos(col, height) {
@@ -110,6 +111,11 @@ jsPsych.plugins.blockworld = (function() {
     createDropZones(startCol) {
       for (let col of _.range(this.state.length)) {
         if (col == startCol) continue;
+        if (this.hanoi
+            && this.state[col].length
+            && _.last(this.state[startCol]) > _.last(this.state[col])) {
+            continue;
+        }
         let dzContainer = $('<div>', {class: 'dropzone-container'});
         let dz = $('<div>', {class: 'dropzone'});
         dz.appendTo(dzContainer);
@@ -159,7 +165,7 @@ jsPsych.plugins.blockworld = (function() {
     var points = new Points(trial.initial_points, trial.highStakes, trial.noBonus);
     points.el.appendTo(display_element);
 
-    var world = new BlockWorld(trial.initial);
+    var world = new BlockWorld(trial.initial, trial.hanoi);
     world.appendTo(display_element);
     world.makeDraggable();
 
