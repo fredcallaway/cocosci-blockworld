@@ -23,6 +23,15 @@ myauth = PsiTurkAuthorization(config)  # if you want to add a password protect r
 custom_code = Blueprint('custom_code', __name__, template_folder='templates', static_folder='static')
 
 
+@custom_code.route('/testexperiment')
+def testexperiment():
+    data = {
+        key: "{{ " + key + " }}"
+        for key in ['uniqueId', 'condition', 'counterbalance', 'adServerLoc', 'mode']
+    }
+    return render_template('exp.html', **data)
+
+
 def get_participants(codeversion):
     return (
         Participant
@@ -136,4 +145,3 @@ def compute_bonus():
         return jsonify(**resp)
     except:
         abort(404)  # again, bad to display HTML, but...
-
